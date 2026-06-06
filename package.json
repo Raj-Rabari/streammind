@@ -1,0 +1,31 @@
+{
+  "name": "stream-mind",
+  "version": "1.0.0",
+  "description": "Local AI Container & Log Observer",
+  "main": "dist/main/main.js",
+  "type": "module",
+  "scripts": {
+    "dev:react": "vite",
+    "build:electron": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json",
+    "watch:electron": "concurrently \"tsc -p tsconfig.main.json -w\" \"tsc -p tsconfig.preload.json -w\"",
+    "start:electron": "wait-on tcp:5173 && electron .",
+    "dev": "npm run build:electron && concurrently -k \"npm run dev:react\" \"npm run watch:electron\" \"npm run start:electron\"",
+    "build:react": "tsc -p tsconfig.renderer.json && vite build",
+    "build": "npm run build:react && npm run build:electron"
+  },
+  "dependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.16",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "concurrently": "^10.0.3",
+    "electron": "^42.3.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16",
+    "wait-on": "^9.0.10"
+  }
+}
