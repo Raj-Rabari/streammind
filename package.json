@@ -2,14 +2,14 @@
   "name": "stream-mind",
   "version": "1.0.0",
   "description": "Local AI Container & Log Observer",
-  "main": "dist/main/main.js",
+  "main": "dist/main/main.cjs",
   "type": "module",
   "scripts": {
     "dev:react": "vite",
     "build:electron": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json",
     "watch:electron": "concurrently \"tsc -p tsconfig.main.json -w\" \"tsc -p tsconfig.preload.json -w\"",
-    "start:electron": "wait-on tcp:5173 && electron .",
-    "dev": "npm run build:electron && concurrently -k \"npm run dev:react\" \"npm run watch:electron\" \"npm run start:electron\"",
+    "start:electron": "wait-on tcp:5173 && electron . --no-sandbox",
+    "dev": "rm -rf dist && npm run build:electron && concurrently -k \"npm run dev:react\" \"npm run watch:electron\" \"npm run start:electron\"",
     "build:react": "tsc -p tsconfig.renderer.json && vite build",
     "build": "npm run build:react && npm run build:electron"
   },

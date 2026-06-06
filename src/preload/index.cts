@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import { LogMessage } from "../shared/types";
+import type { LogMessage } from "../shared/types";
 
 // Ensure context isolation is enabled for security
 if (!process.contextIsolated) {

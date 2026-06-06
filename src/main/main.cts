@@ -1,14 +1,9 @@
 import { app, BrowserWindow } from "electron";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
-
-// 1. Reconstruct __dirname safely for ESM environments
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 const RENDERER_DIST = path.join(__dirname, "../renderer");
-const PRELOAD_SCRIPT = path.join(__dirname, "../preload/index.js");
+const PRELOAD_SCRIPT = path.join(__dirname, "../preload/index.cjs");
 
 let mainWindow: BrowserWindow | null = null;
 
