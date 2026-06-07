@@ -1,5 +1,7 @@
 import { app, BrowserWindow } from "electron";
 import * as path from "node:path";
+import { ipcMain } from "electron";
+import { DockerClient } from "./docker.cjs";
 
 const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 const RENDERER_DIST = path.join(__dirname, "../renderer");
@@ -37,6 +39,10 @@ function createMainWindow() {
   });
 }
 
+// if (process.platform === "linux") {
+//   app.commandLine.appendSwitch("disable-features", "Vulkan");
+// }
+
 app.whenReady().then(() => {
   createMainWindow();
 
@@ -51,4 +57,22 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+ipcMain.handle("docker:get-containers", async () => {
+  try {
+    const containers = await DockerClient.getRunningContainers();
+    return containers;
+  } catch (error: any) {
+    console.error("IPC Error fetching containers:", error);
+    return [];
+  }
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception in Main Process:", error);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection in Main Process:", reason);
 });

@@ -9,6 +9,6 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "rootDir": "src"
+    "rootDir": "src",
   }
 }
