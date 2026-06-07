@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import LogViewer from './LogViewer';
 
 export default function App() {
   const [isBridgeReady, setIsBridgeReady] = useState(false);
   const [containers, setContainers] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Track which container is currently being viewed
+  const [activeContainer, setActiveContainer] = useState<string | null>(null);
 
   useEffect(() => {
     if (window.electronAPI) {
@@ -27,6 +31,17 @@ export default function App() {
       setIsLoading(false);
     }
   };
+
+  if (activeContainer) {
+    return (
+      <div style={{ height: '100vh', width: '100vw' }}>
+        <LogViewer 
+          containerName={activeContainer} 
+          onClose={() => setActiveContainer(null)} 
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
@@ -90,7 +105,7 @@ export default function App() {
                   <span style={{ fontWeight: '500', letterSpacing: '0.5px' }}>{name}</span>
 
                   <button 
-                    onClick={() => window.electronAPI.startMonitoring(name)}
+                    onClick={() => setActiveContainer(name)}
                     style={{
                             background: '#4CAF50', color: '#121212', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold'
                           }}

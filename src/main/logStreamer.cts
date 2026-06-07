@@ -84,7 +84,7 @@ export class DockerLogStreamer {
     this.activeRequest.on("error", (e) => {
       console.error("Stream error:", e);
       this.window.webContents.send(
-        "log:stream-error",
+        "docker:log-stream-error",
         `Stream crashed: ${e.message}`,
       );
       this.stop();
@@ -108,13 +108,13 @@ export class DockerLogStreamer {
     const batch = [...this.logBuffer];
     this.logBuffer = [];
 
-    // --- TEMPORARY RAW TERMINAL TEST ---
-    console.log(`\n[BACKEND BATCH FLUSH] Sending ${batch.length} logs to UI:`);
-    console.dir(batch, { depth: null, colors: true });
-    // -----------------------------------
+    // // --- TEMPORARY RAW TERMINAL TEST ---
+    // console.log(`\n[BACKEND BATCH FLUSH] Sending ${batch.length} logs to UI:`);
+    // console.dir(batch, { depth: null, colors: true });
+    // // -----------------------------------
 
     // Route to the React Frontend
-    this.window.webContents.send("log:stream-chunk", batch);
+    this.window.webContents.send("docker:stream-chunk", batch);
   }
 
   public stop() {

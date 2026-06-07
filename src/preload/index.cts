@@ -16,11 +16,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ) => {
       callback(logs);
     };
-    ipcRenderer.on("docker:log-stream", listener);
+    ipcRenderer.on("docker:stream-chunk", listener);
 
     // Return a cleanup function to remove the listener when it's no longer needed
     return () => {
-      ipcRenderer.removeListener("docker:log-stream", listener);
+      ipcRenderer.removeListener("docker:stream-chunk", listener);
     };
   },
 
