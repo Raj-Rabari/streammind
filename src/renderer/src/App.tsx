@@ -88,6 +88,15 @@ export default function App() {
                 }}>
                   <span style={{ color: '#4CAF50' }}>▶</span>
                   <span style={{ fontWeight: '500', letterSpacing: '0.5px' }}>{name}</span>
+
+                  <button 
+                    onClick={() => window.electronAPI.startMonitoring(name)}
+                    style={{
+                            background: '#4CAF50', color: '#121212', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold'
+                          }}
+                  >
+                    Test Stream
+                  </button>
                 </li>
               ))}
             </ul>

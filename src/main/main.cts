@@ -2,12 +2,16 @@ import { app, BrowserWindow } from "electron";
 import * as path from "node:path";
 import { ipcMain } from "electron";
 import { DockerClient } from "./docker.cjs";
+import { DockerLogStreamer } from "./logStreamer.cjs";
 
 const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 const RENDERER_DIST = path.join(__dirname, "../renderer");
 const PRELOAD_SCRIPT = path.join(__dirname, "../preload/index.cjs");
 
 let mainWindow: BrowserWindow | null = null;
+
+// Store active streams in memory
+const activeStreams = new Map<string, DockerLogStreamer>();
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
@@ -66,6 +70,29 @@ ipcMain.handle("docker:get-containers", async () => {
   } catch (error: any) {
     console.error("IPC Error fetching containers:", error);
     return [];
+  }
+});
+
+// New Stream Start Handler
+ipcMain.handle("docker:start-monitoring", (event, containerName: string) => {
+  // Prevent duplicate streams for the same container
+  if (activeStreams.has(containerName)) return;
+
+  // We need the window instance to send events down to the frontend
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  const streamer = new DockerLogStreamer(window, containerName);
+  activeStreams.set(containerName, streamer);
+  streamer.start();
+});
+
+// New Stream Stop Handler
+ipcMain.handle("docker:stop-monitoring", (_event, containerName: string) => {
+  const streamer = activeStreams.get(containerName);
+  if (streamer) {
+    streamer.stop();
+    activeStreams.delete(containerName);
   }
 });
 
