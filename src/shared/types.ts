@@ -17,6 +17,8 @@ export interface ElectronAPI {
   // Control actions
   startMonitoring: (containerName: string) => Promise<void>;
   stopMonitoring: (containerName: string) => Promise<void>;
+
+  analyzeLogs: (containerName: string) => Promise<string>;
 }
 
 // Re-declare the global Window interface so TypeScript recognizes our API in React

@@ -37,6 +37,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     };
   },
 
+  analyzeLogs: (containerName: string) =>
+    ipcRenderer.invoke("ai:analyze", containerName),
+
   startMonitoring: (containerName: string) =>
     ipcRenderer.invoke("docker:start-monitoring", containerName),
 

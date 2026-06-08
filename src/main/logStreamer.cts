@@ -15,6 +15,10 @@ export class DockerLogStreamer {
   private readonly FLUSH_INTERVAL_MS = 100; // Flush to UI 10 times per second
   private readonly MAX_BATCH_SIZE = 500; // Or flush immediately if we hit 500 lines
 
+  // Add this near the top of the DockerLogStreamer class:
+  private aiContextBuffer: LogMessage[] = [];
+  private readonly MAX_CONTEXT_LINES = 50;
+
   constructor(
     private window: BrowserWindow,
     private containerName: string,
@@ -95,7 +99,13 @@ export class DockerLogStreamer {
 
   private queueLog(log: LogMessage) {
     this.logBuffer.push(log);
-    // 4. Memory Safety: Flush immediately if velocity is extremely high
+
+    // Feed the AI Context Window
+    this.aiContextBuffer.push(log);
+    if (this.aiContextBuffer.length > this.MAX_CONTEXT_LINES) {
+      this.aiContextBuffer.shift(); // Drop the oldest line
+    }
+
     if (this.logBuffer.length >= this.MAX_BATCH_SIZE) {
       this.flushLogs();
     }
@@ -124,5 +134,10 @@ export class DockerLogStreamer {
     // Flush any remaining logs before fully shutting down
     this.flushLogs();
     console.log(`Stopped monitoring ${this.containerName}`);
+  }
+
+  // Add a public method to retrieve the snapshot:
+  public getContextSnapshot(): LogMessage[] {
+    return [...this.aiContextBuffer];
   }
 }

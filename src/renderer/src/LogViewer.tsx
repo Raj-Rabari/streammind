@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { List, ListImperativeAPI } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import type { LogMessage } from '../../shared/types';
+import AiAnalyzer from './AiAnalyzer';
 
 interface LogViewerProps {
   containerName: string;
@@ -100,6 +101,9 @@ export default function LogViewer({ containerName, onClose }: LogViewerProps) {
           </button>
         </div>
       </div>
+
+      {/* 2. INJECT THE AI PANEL HERE */}
+      <AiAnalyzer containerName={containerName} />
 
       {/* Virtualized Container */}
       <div style={{ flex: 1, position: 'relative', minWidth: 0, minHeight: 0 }}>

@@ -3,6 +3,7 @@ import * as path from "node:path";
 import { ipcMain } from "electron";
 import { DockerClient } from "./docker.cjs";
 import { DockerLogStreamer } from "./logStreamer.cjs";
+import { LogAnalyzer } from "./ai.cjs";
 
 const isDev = process.env.NODE_ENV === "development" || !app.isPackaged;
 const RENDERER_DIST = path.join(__dirname, "../renderer");
@@ -94,6 +95,20 @@ ipcMain.handle("docker:stop-monitoring", (_event, containerName: string) => {
     streamer.stop();
     activeStreams.delete(containerName);
   }
+});
+
+ipcMain.handle("ai:analyze", async (_event, containerName: string) => {
+  const streamer = activeStreams.get(containerName);
+  if (!streamer) {
+    throw new Error(`No active stream found for ${containerName}`);
+  }
+
+  // Grab the sliding window snapshot
+  const context = streamer.getContextSnapshot();
+
+  // Pass it to the AI Service
+  const analysis = await LogAnalyzer.analyzeContext(containerName, context);
+  return analysis;
 });
 
 process.on("uncaughtException", (error) => {
