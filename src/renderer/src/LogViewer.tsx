@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { List, ListImperativeAPI } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
+import { X, ArrowDownCircle, TerminalSquare } from 'lucide-react';
 import type { LogMessage } from '../../shared/types';
 import AiAnalyzer from './AiAnalyzer';
 
@@ -17,25 +18,17 @@ const Row = ({ index, style, ariaAttributes, logs }: { index: number, style: Rea
   const isError = log.level === 'error';
 
   return (
-    <div {...ariaAttributes} style={{
-      ...style,
-      display: 'flex',
-      gap: '1rem',
-      padding: '0 1rem',
-      alignItems: 'center',
-      borderBottom: '1px solid #2a2a2a',
-      background: isError ? '#2a1212' : 'transparent',
-      color: isError ? '#ff6b6b' : '#a0a0a0',
-      fontFamily: 'monospace',
-      fontSize: '0.85rem',
-      whiteSpace: 'nowrap',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis'
-    }}>
-      <span style={{ color: '#555', minWidth: '180px' }}>
-        {new Date(log.timestamp).toLocaleTimeString()}
+    <div 
+      {...ariaAttributes} 
+      style={style}
+      className={`flex items-center gap-4 px-6 border-b border-slate-800/40 font-mono text-sm whitespace-nowrap overflow-hidden text-ellipsis transition-colors ${
+        isError ? 'bg-red-950/20 text-red-400' : 'bg-transparent text-slate-300 hover:bg-slate-800/20'
+      }`}
+    >
+      <span className="text-slate-500 min-w-[100px] tabular-nums shrink-0 text-xs">
+        {new Date(log.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
       </span>
-      <span style={{ fontWeight: isError ? 'bold' : 'normal' }}>
+      <span className={`${isError ? 'font-semibold' : 'font-normal'} truncate`}>
         {log.message}
       </span>
     </div>
@@ -55,7 +48,6 @@ export default function LogViewer({ containerName, onClose }: LogViewerProps) {
     const unsubscribeStream = window.electronAPI.onLogStream((newBatch) => {
       setLogs((prevLogs) => {
         // Implement the Ring Buffer logic
-        console.log(`Received batch of ${newBatch.length} logs from backend.`);
         const combined = [...prevLogs, ...newBatch];
         if (combined.length > MAX_LOG_LINES) {
           return combined.slice(combined.length - MAX_LOG_LINES);
@@ -79,34 +71,48 @@ export default function LogViewer({ containerName, onClose }: LogViewerProps) {
   }, [logs.length, autoScroll]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#121212' }}>
+    <div className="flex flex-col h-full bg-slate-950">
       {/* Header Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: '#1e1e1e', borderBottom: '1px solid #333' }}>
-        <div>
-          <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>Live Stream: </span>
-          <span style={{ color: '#fff' }}>{containerName}</span>
-          <span style={{ color: '#888', marginLeft: '1rem' }}>({logs.length} lines)</span>
+      <div className="flex justify-between items-center px-6 py-4 bg-slate-900 border-b border-slate-800 shadow-md z-10">
+        <div className="flex items-center gap-3">
+          <TerminalSquare className="w-5 h-5 text-sky-400" />
+          <div className="flex items-center gap-2">
+            <span className="text-emerald-400 font-semibold text-sm uppercase tracking-wider">Live Stream</span>
+            <span className="text-slate-600">/</span>
+            <span className="text-slate-50 font-medium">{containerName}</span>
+          </div>
+          <span className="text-xs text-sky-400 font-mono bg-sky-500/10 border border-sky-500/20 px-2 py-1 rounded-md ml-3 shadow-[0_0_10px_rgba(56,189,248,0.1)]">
+            {logs.length} lines
+          </span>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ccc', cursor: 'pointer' }}>
+        <div className="flex items-center gap-6">
+          <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer hover:text-slate-50 transition-colors select-none">
             <input
               type="checkbox"
               checked={autoScroll}
               onChange={(e) => setAutoScroll(e.target.checked)}
+              className="accent-sky-500 w-4 h-4 cursor-pointer"
             />
-            Auto-scroll
+            <span className="flex items-center gap-1.5">
+              <ArrowDownCircle className="w-4 h-4" />
+              Auto-scroll
+            </span>
           </label>
-          <button onClick={onClose} style={{ background: '#F44336', color: 'white', border: 'none', padding: '0.2rem 0.8rem', borderRadius: '4px', cursor: 'pointer' }}>
+          <button 
+            onClick={onClose} 
+            className="flex items-center gap-1.5 bg-slate-800 hover:bg-red-500/10 text-slate-300 hover:text-red-400 border border-slate-700 hover:border-red-500/30 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 active:scale-95"
+          >
+            <X className="w-4 h-4" />
             Close
           </button>
         </div>
       </div>
 
-      {/* 2. INJECT THE AI PANEL HERE */}
+      {/* INJECT THE AI PANEL HERE */}
       <AiAnalyzer containerName={containerName} />
 
       {/* Virtualized Container */}
-      <div style={{ flex: 1, position: 'relative', minWidth: 0, minHeight: 0 }}>
+      <div className="flex-1 relative min-w-0 min-h-0 bg-slate-950">
         <AutoSizer
           renderProp={({ height, width }) => {
             if (height === undefined || width === undefined) return null;
@@ -115,7 +121,7 @@ export default function LogViewer({ containerName, onClose }: LogViewerProps) {
                 listRef={listRef}
                 style={{ height, width }}
                 rowCount={logs.length}
-                rowHeight={30} // Fixed height per row for maximum speed
+                rowHeight={32} // Fixed height per row for maximum speed
                 rowProps={{ logs }}
                 rowComponent={Row}
               />

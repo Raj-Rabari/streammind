@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Box, RefreshCw, Play, Activity } from 'lucide-react';
 import LogViewer from './LogViewer';
 
 export default function App() {
@@ -27,14 +28,13 @@ export default function App() {
       console.error("Frontend fetch error:", err);
       setError(err.message || "Failed to communicate with Docker Daemon.");
     } finally {
-      console.log("Fetch attempt completed.");
       setIsLoading(false);
     }
   };
 
   if (activeContainer) {
     return (
-      <div style={{ height: '100vh', width: '100vw' }}>
+      <div className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-50 flex flex-col">
         <LogViewer 
           containerName={activeContainer} 
           onClose={() => setActiveContainer(null)} 
@@ -44,80 +44,96 @@ export default function App() {
   }
 
   return (
-    <div style={{ 
-      fontFamily: 'system-ui, sans-serif', 
-      padding: '2rem', 
-      background: '#121212', 
-      color: '#ffffff', 
-      minHeight: '100vh',
-      maxWidth: '800px',
-      margin: '0 auto'
-    }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #333', paddingBottom: '1rem', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ margin: 0, color: '#4CAF50' }}>StreamMind</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-            <span style={{
-              width: '8px', height: '8px', borderRadius: '50%',
-              background: isBridgeReady ? '#4CAF50' : '#F44336'
-            }} />
-            <span style={{ color: '#888', fontSize: '0.9rem' }}>
-              {isBridgeReady ? 'System Bridge Active' : 'Bridge Offline'}
-            </span>
+    <div className="min-h-screen bg-slate-950 text-slate-50 font-sans p-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        
+        {/* Header - Glassmorphism */}
+        <header className="sticky top-4 z-10 backdrop-blur-xl bg-slate-900/60 border border-slate-800 rounded-2xl p-6 flex justify-between items-center shadow-2xl">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-sky-500/10 border border-sky-500/20 rounded-xl shadow-[0_0_15px_rgba(56,189,248,0.15)]">
+              <Box className="w-8 h-8 text-sky-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400 m-0 tracking-tight">
+                StreamMind
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`relative flex h-2.5 w-2.5`}>
+                  {isBridgeReady && (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  )}
+                  <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isBridgeReady ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
+                </span>
+                <span className="text-sm text-slate-400 font-medium">
+                  {isBridgeReady ? 'System Bridge Active' : 'Bridge Offline'}
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
-        <button 
-          onClick={fetchContainers}
-          disabled={isLoading || !isBridgeReady}
-          style={{
-            background: '#333', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', cursor: isLoading ? 'wait' : 'pointer'
-          }}
-        >
-          {isLoading ? 'Scanning...' : 'Refresh Containers'}
-        </button>
-      </header>
+          
+          <button 
+            onClick={fetchContainers}
+            disabled={isLoading || !isBridgeReady}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-slate-600 px-5 py-2.5 rounded-xl font-medium transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            {isLoading ? 'Scanning...' : 'Refresh'}
+          </button>
+        </header>
 
-      <main>
-        <section style={{ background: '#1e1e1e', padding: '1.5rem', borderRadius: '8px' }}>
-          <h2 style={{ fontSize: '1.2rem', marginTop: 0, borderBottom: '1px solid #333', paddingBottom: '0.5rem' }}>
-            Active Docker Containers
-          </h2>
-
-          {error && (
-            <div style={{ background: '#3a1c1c', color: '#ff6b6b', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
-              <strong>Error:</strong> {error}
+        <main>
+          <section className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
+            <div className="flex items-center gap-3 border-b border-slate-800 pb-4 mb-6">
+              <Activity className="w-5 h-5 text-slate-400" />
+              <h2 className="text-lg font-semibold text-slate-200 m-0">
+                Active Docker Containers
+              </h2>
             </div>
-          )}
 
-          {!isLoading && !error && containers.length === 0 && (
-            <div style={{ color: '#888', fontStyle: 'italic', padding: '1rem 0' }}>
-              No running containers found. Ensure Docker is running and you have active containers.
-            </div>
-          )}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl mb-6 flex items-start gap-3">
+                <div className="mt-0.5">⚠️</div>
+                <div>
+                  <strong className="block font-semibold mb-1">Connection Error</strong>
+                  {error}
+                </div>
+              </div>
+            )}
 
-          {!error && containers.length > 0 && (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {containers.map((name) => (
-                <li key={name} style={{ 
-                  background: '#2a2a2a', padding: '1rem', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '1rem' 
-                }}>
-                  <span style={{ color: '#4CAF50' }}>▶</span>
-                  <span style={{ fontWeight: '500', letterSpacing: '0.5px' }}>{name}</span>
+            {!isLoading && !error && containers.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-12 text-slate-500 bg-slate-900/30 rounded-xl border border-dashed border-slate-800">
+                <Box className="w-12 h-12 mb-4 opacity-20" />
+                <p className="font-medium text-lg">No active containers found</p>
+                <p className="text-sm mt-1">Ensure Docker is running and try refreshing.</p>
+              </div>
+            )}
 
-                  <button 
-                    onClick={() => setActiveContainer(name)}
-                    style={{
-                            background: '#4CAF50', color: '#121212', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold'
-                          }}
+            {!error && containers.length > 0 && (
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 list-none p-0 m-0">
+                {containers.map((name) => (
+                  <li 
+                    key={name} 
+                    className="group bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 hover:border-sky-500/30 p-4 rounded-xl flex items-center justify-between transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/5"
                   >
-                    Test Stream
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </main>
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                      <span className="font-medium text-slate-200 truncate pr-4">{name}</span>
+                    </div>
+
+                    <button 
+                      onClick={() => setActiveContainer(name)}
+                      className="flex items-center gap-2 bg-sky-500 hover:bg-sky-400 text-slate-950 px-4 py-2 rounded-lg font-semibold transition-all duration-200 active:scale-95 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    >
+                      <Play className="w-4 h-4 fill-slate-950" />
+                      Stream
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </main>
+      </div>
     </div>
   );
 }
