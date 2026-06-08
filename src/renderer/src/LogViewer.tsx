@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { List, ListImperativeAPI } from 'react-window';
+import { List, ListImperativeAPI, useDynamicRowHeight } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import { X, ArrowDownCircle, TerminalSquare } from 'lucide-react';
 import type { LogMessage } from '../../shared/types';
@@ -21,14 +21,14 @@ const Row = ({ index, style, ariaAttributes, logs }: { index: number, style: Rea
     <div 
       {...ariaAttributes} 
       style={style}
-      className={`flex items-center gap-4 px-6 border-b border-slate-800/40 font-mono text-sm whitespace-nowrap overflow-hidden text-ellipsis transition-colors ${
+      className={`flex items-start gap-4 px-6 py-1.5 border-b border-slate-800/40 font-mono text-sm transition-colors ${
         isError ? 'bg-red-950/20 text-red-400' : 'bg-transparent text-slate-300 hover:bg-slate-800/20'
       }`}
     >
-      <span className="text-slate-500 min-w-[100px] tabular-nums shrink-0 text-xs">
+      <span className="text-slate-500 min-w-[100px] tabular-nums shrink-0 text-xs mt-0.5">
         {new Date(log.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
       </span>
-      <span className={`${isError ? 'font-semibold' : 'font-normal'} truncate`}>
+      <span className={`whitespace-pre-wrap break-all ${isError ? 'font-semibold' : 'font-normal'}`}>
         {log.message}
       </span>
     </div>
@@ -39,6 +39,7 @@ export default function LogViewer({ containerName, onClose }: LogViewerProps) {
   const [logs, setLogs] = useState<LogMessage[]>([]);
   const listRef = useRef<ListImperativeAPI>(null);
   const [autoScroll, setAutoScroll] = useState(true);
+  const dynamicRowHeight = useDynamicRowHeight({ defaultRowHeight: 32 });
 
   useEffect(() => {
     // 1. Tell the backend to start streaming
@@ -121,7 +122,7 @@ export default function LogViewer({ containerName, onClose }: LogViewerProps) {
                 listRef={listRef}
                 style={{ height, width }}
                 rowCount={logs.length}
-                rowHeight={32} // Fixed height per row for maximum speed
+                rowHeight={dynamicRowHeight}
                 rowProps={{ logs }}
                 rowComponent={Row}
               />

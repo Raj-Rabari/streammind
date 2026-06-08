@@ -1,15 +1,18 @@
-import React, { useActionState } from 'react';
-import { Sparkles, Bot, Loader2 } from 'lucide-react';
+import React, { useActionState, useState } from 'react';
+import { Sparkles, Bot, Loader2, X } from 'lucide-react';
 
 interface AiAnalyzerProps {
   containerName: string;
 }
 
 export default function AiAnalyzer({ containerName }: AiAnalyzerProps) {
+  const [isResponseVisible, setIsResponseVisible] = useState(false);
+
   // React 19's useActionState takes an async function and an initial state.
   // It returns: [currentData, formSubmitAction, isPendingFlag]
   const [analysis, submitAction, isPending] = useActionState(
     async (_prevState: string | null, _formData: FormData) => {
+      setIsResponseVisible(true);
       try {
         // Trigger the backend to snapshot the ring buffer and call Gemini
         const result = await window.electronAPI.analyzeLogs(containerName);
@@ -62,12 +65,32 @@ export default function AiAnalyzer({ containerName }: AiAnalyzerProps) {
         </form>
         
         {/* Render the AI response if it exists */}
-        {analysis && (
-          <div className="mt-2 bg-slate-950/80 backdrop-blur-md border border-slate-800/80 rounded-xl p-6 text-slate-200 leading-relaxed font-sans shadow-inner">
-            <div className="whitespace-pre-wrap text-sm leading-7">
+        {analysis && isResponseVisible && (
+          <div className="mt-2 bg-slate-950/80 backdrop-blur-md border border-slate-800/80 rounded-xl p-6 text-slate-200 leading-relaxed font-sans shadow-inner relative max-h-[40vh] overflow-y-auto">
+            <button 
+              onClick={() => setIsResponseVisible(false)}
+              type="button"
+              className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors z-20"
+              title="Close Analysis"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="whitespace-pre-wrap text-sm leading-7 pr-6">
               {analysis}
             </div>
           </div>
+        )}
+
+        {/* If there's an analysis but it's hidden, show a button to reopen it */}
+        {analysis && !isResponseVisible && (
+          <button 
+            type="button"
+            onClick={() => setIsResponseVisible(true)}
+            className="mt-2 text-sm text-sky-400 hover:text-sky-300 font-medium underline underline-offset-4 flex items-center gap-1.5 w-max"
+          >
+            <Bot className="w-4 h-4" />
+            Show previous analysis
+          </button>
         )}
       </div>
     </div>
