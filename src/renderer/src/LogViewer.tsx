@@ -40,10 +40,12 @@ export default function LogViewer({ containerName, onClose }: LogViewerProps) {
   const listRef = useRef<ListImperativeAPI>(null);
   const [autoScroll, setAutoScroll] = useState(true);
   const dynamicRowHeight = useDynamicRowHeight({ defaultRowHeight: 32 });
+  // Add state for the tail value
+  const [tailCount, setTailCount] = useState<number>(100);
 
   useEffect(() => {
     // 1. Tell the backend to start streaming
-    window.electronAPI.startMonitoring(containerName);
+    window.electronAPI.startMonitoring(containerName, tailCount);
 
     // 2. Subscribe to the batched log chunks
     const unsubscribeStream = window.electronAPI.onLogStream((newBatch) => {
@@ -62,7 +64,7 @@ export default function LogViewer({ containerName, onClose }: LogViewerProps) {
       unsubscribeStream();
       window.electronAPI.stopMonitoring(containerName);
     };
-  }, [containerName]);
+  }, [containerName, tailCount]);
 
   // Auto-scroll to bottom when new logs arrive (if autoScroll is enabled)
   useEffect(() => {
@@ -106,6 +108,21 @@ export default function LogViewer({ containerName, onClose }: LogViewerProps) {
             <X className="w-4 h-4" />
             Close
           </button>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ color: '#888', fontSize: '0.85rem' }}>History:</span>
+          <select 
+            value={tailCount} 
+            onChange={(e) => {
+              setLogs([]); // Wipe current logs when switching history scope
+              setTailCount(Number(e.target.value));
+            }}
+            style={{ background: '#333', color: 'white', border: 'none', borderRadius: '4px', padding: '0.2rem' }}
+          >
+            <option value={100}>Last 100 lines</option>
+            <option value={500}>Last 500 lines</option>
+            <option value={2000}>Last 2000 lines</option>
+          </select>
         </div>
       </div>
 

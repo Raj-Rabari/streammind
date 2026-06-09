@@ -15,7 +15,7 @@ export interface ElectronAPI {
   onStreamError: (callback: (error: string) => void) => () => void;
 
   // Control actions
-  startMonitoring: (containerName: string) => Promise<void>;
+  startMonitoring: (containerName: string, tailCount?: number) => Promise<void>;
   stopMonitoring: (containerName: string) => Promise<void>;
 
   analyzeLogs: (containerName: string) => Promise<string>;

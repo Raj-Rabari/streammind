@@ -75,18 +75,21 @@ ipcMain.handle("docker:get-containers", async () => {
 });
 
 // New Stream Start Handler
-ipcMain.handle("docker:start-monitoring", (event, containerName: string) => {
-  // Prevent duplicate streams for the same container
-  if (activeStreams.has(containerName)) return;
+ipcMain.handle(
+  "docker:start-monitoring",
+  (event, containerName: string, tail: number) => {
+    // Prevent duplicate streams for the same container
+    if (activeStreams.has(containerName)) return;
 
-  // We need the window instance to send events down to the frontend
-  const window = BrowserWindow.fromWebContents(event.sender);
-  if (!window) return;
+    // We need the window instance to send events down to the frontend
+    const window = BrowserWindow.fromWebContents(event.sender);
+    if (!window) return;
 
-  const streamer = new DockerLogStreamer(window, containerName);
-  activeStreams.set(containerName, streamer);
-  streamer.start();
-});
+    const streamer = new DockerLogStreamer(window, containerName, tail);
+    activeStreams.set(containerName, streamer);
+    streamer.start();
+  },
+);
 
 // New Stream Stop Handler
 ipcMain.handle("docker:stop-monitoring", (_event, containerName: string) => {

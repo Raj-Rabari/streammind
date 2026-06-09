@@ -22,6 +22,7 @@ export class DockerLogStreamer {
   constructor(
     private window: BrowserWindow,
     private containerName: string,
+    private tail = 100,
   ) {}
 
   public start() {
@@ -36,7 +37,7 @@ export class DockerLogStreamer {
     // 2. Connect to the Docker API (follow=1 keeps the stream open, tail=100 gets recent history)
     const options: http.RequestOptions = {
       socketPath: DOCKER_SOCKET,
-      path: `/containers/${this.containerName}/logs?stdout=1&stderr=1&follow=1&tail=100`,
+      path: `/containers/${this.containerName}/logs?stdout=1&stderr=1&follow=1&tail=${this.tail}`,
       method: "GET",
       headers: { Host: "http" },
     };
